@@ -7,7 +7,7 @@ import AnswerForm from './AnswerForm';
 import CardBox from '../UI/CardBox';
 import ErrorAlert from '../UI/ErrorAlert';
 const AnswersList = () => {
-  const [answers,setAnswers] = useState([]);
+  const [answers,setAnswers] = useState({answers:[],addnewAnswer:0});
   const [isLoading,setIsLoading] = useState(true);
   const [httpError,setHttpError] = useState(null);
   const [open,setOpen] = useState(false);
@@ -25,8 +25,11 @@ const AnswersList = () => {
     setOpen(false);
   };
   useEffect(()=>{
+    const controller = new AbortController();
     const fetchAnswers = async () => {
-        const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json?orderBy="questionId"&equalTo="'+params.questionId+'"&print=pretty');
+        const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json?orderBy="questionId"&equalTo="'+params.questionId+'"&print=pretty', {
+          signal: controller.signal
+        });
         if(!response.ok){
             throw new Error('Something went wrong!');
         }
@@ -42,17 +45,22 @@ const AnswersList = () => {
                     questionId: responseData[key].questionId,
                 });
             }
-        setAnswers(loadedAnswers);
+            setAnswers(s => ({ ...s, answers: loadedAnswers }));
         setIsLoading(false);
     };
     fetchAnswers().catch((error) =>{
+      if(error.name === 'AbortError'){
+        console.log('fetch aborted');
+    }else{
         setIsLoading(false);
         setHttpError(error.message);
         setOpen(true);
-        });     
-},[params.questionId,answers]);
+    }
+        });
+        return () => controller.abort();
+},[params.questionId,answers.addnewAnswer]);
 
-const submitAnswer =(event) =>{
+const submitAnswer =  async (event) =>{
   event.preventDefault();
   const enteredAnswer  = inputAnswerRef.current.value;
   if(enteredAnswer.trim().length === 0){
@@ -60,7 +68,7 @@ const submitAnswer =(event) =>{
     return;
   }
   setValidationError(false);
-  fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json',{
+  await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json',{
     method:'POST',
     body:JSON.stringify({
       content:enteredAnswer,
@@ -71,13 +79,14 @@ const submitAnswer =(event) =>{
       'Content-Type' :'application/json'
     }
   });
+  setAnswers(s => ({ ...s,addnewAnswer: s.addnewAnswer + 1}));
 }
   return (
     <Container>
       {httpError && <ErrorAlert errorText={httpError} open={open} autoHideDuration={3000} handleClose={handleClose} />}
       <AnswerForm error={validationError} inputAnswerRef={inputAnswerRef} submitAnswer={submitAnswer}/>
 
-      <Grid container  justifyContent="center"  spacing={1} p={1}> 
+      <Grid container justifyContent="center" spacing={1} p={1}> 
       
         <Grid item  xs={10} sm={8} md={8}>
           <CardBox content={questionContent}/>
@@ -87,9 +96,9 @@ const submitAnswer =(event) =>{
           <Typography  sx={{ fontSize: 20 }} color="text.secondary">List of Answers</Typography>
         </Grid>
 
-        {!isLoading && answers.length===0 && <p>no answers</p>}
+        {!isLoading && answers.answers.length ===0 && <p>no answers</p>}
         {isLoading && <CircularProgress /> }
-        {!isLoading && answers.length > 0 && <Grid  item xs={12} sm={8} md={8}><Answer answers={answers}/></Grid>}
+        {!isLoading && answers.answers.length > 0 && <Grid  item xs={12} sm={8} md={8}><Answer answers={answers.answers}/></Grid>}
 
       </Grid> 
     </Container>

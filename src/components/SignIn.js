@@ -78,7 +78,7 @@ const SignIn = () => {
             alignItems: 'center',
             
           }}>
-          <Avatar sx={{ m: 1, bgcolor: 'success.light' }} />
+          <Avatar sx={{ m: 1 }} />
             
           <Typography component="h1" variant="h5">Sign in </Typography>
           <Box component="form" onSubmit={submitHandle} sx={{ mt: 2 }}>
@@ -106,7 +106,7 @@ const SignIn = () => {
           </Box>
           <Grid  container sx={{mb:2}} justifyContent="flex-end">
             <Grid item >
-               <Link to='/signout' variant="body2" underline="hover"  color ={greyColor}>
+               <Link to='/signout' variant="body2" style={{color :{greyColor},textDecoration:'none'}} >
                   {"Don't have an account? Sign Up"}
                </Link>
               </Grid >

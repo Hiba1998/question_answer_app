@@ -11,7 +11,7 @@ export default function QuestionDialog(props) {
   const authCtx = useContext(AuthContext);
   const [validationError,setValidationError] = useState(false); 
 
-  const addQuestionHandle =(event) =>{
+  const addQuestionHandle = async (event) =>{
     
     event.preventDefault();
     const enteredQuestion  = questionInputRef.current.value;
@@ -22,7 +22,7 @@ export default function QuestionDialog(props) {
       return;
     }
     setValidationError(false);
-    fetch('https://cme-firstproject-default-rtdb.firebaseio.com/questions.json',{
+    await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/questions.json',{
       method:'POST',
       body:JSON.stringify({
         content:enteredQuestion,
@@ -34,6 +34,7 @@ export default function QuestionDialog(props) {
       }
     });
     props.handleClose();
+    props.newQuestion();
   }
   return (
     <div>
@@ -51,8 +52,8 @@ export default function QuestionDialog(props) {
           </Grid> 
         </DialogContent>
         <DialogActions>
-                <Button  variant="contained" onClick={props.handleClose}>Cancel</Button>
-                <Button variant="contained" type="submit" onClick={addQuestionHandle}>Add</Button>
+                <Button onClick={props.handleClose}>Cancel</Button>
+                <Button type="submit" onClick={addQuestionHandle}>Add</Button>
         </DialogActions>
       </Dialog>
     </div>

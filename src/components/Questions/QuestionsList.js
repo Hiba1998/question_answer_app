@@ -6,8 +6,8 @@ import {useHistory} from 'react-router-dom';
 import MaterialTable from "material-table";
 import TypeSelect from '../UI/TypeSelect';
 import ErrorAlert from '../UI/ErrorAlert';
-export default function QuestionsList() {
-    const [questions,setQuestions] = useState([]);
+    const QuestionsList = () => {
+    const [questions,setQuestions] = useState({questions:[],addNewQuestion:0});
     const [isLoading,setIsLoading] = useState(true);
     const [httpError,setHttpError] = useState(null);
     const [types,setTypes] = useState([]);
@@ -23,8 +23,11 @@ export default function QuestionsList() {
         setOpen(false);
       };
     useEffect(()=>{
+        const controller = new AbortController();
         const fetchQuestions= async () => {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                signal: controller.signal
+              });
           
             if(!response.ok){
                 throw new Error('Something went wrong!');
@@ -41,16 +44,22 @@ export default function QuestionsList() {
                     type: responseData[key].type,
                 });
             }
-             setQuestions(loadedQuestions);
+             setQuestions(s =>({...s,questions:loadedQuestions}));
              setIsLoading(false);
+            
         }
          fetchTypesHandler();
          fetchQuestions().catch((error) =>{
+             if(error.name === 'AbortError') {
+                 console.log('fetch aborted');
+             }else {
              setIsLoading(false);
              setHttpError(error.message);
              setOpenAlert(true);
-           });     
-    },[url,questions]);
+             }
+           }); 
+           return () => controller.abort();
+    },[url,questions.addNewQuestion]);
     
 
     async function fetchTypesHandler(){
@@ -76,17 +85,25 @@ export default function QuestionsList() {
         setOpen(false);
     };
 
+    const newQuestion = () =>{
+        setQuestions(s => ({...s,addNewQuestion: s.addNewQuestion + 1}));
+    };
+
   return (
-    <>
+    <div>
         {httpError && <ErrorAlert errorText={httpError} open={openAlert} autoHideDuration={3000} handleClose={handleCloseAlert} />}
         {isLoading && <CircularProgress /> }
         {!isLoading && 
         <Container>
-            <Grid container  justifyContent="center" sx={{mt:4}}>
-                <TypeSelect text="Filter by Type" types={types} onChange={(e)=>{
+            <Grid container  justifyContent="center"  spacing={1} sx={{mt:4}}>
+                <Grid item>
+                    <TypeSelect  types={types} onChange={(e)=>{
                         setUrl('https://cme-firstproject-default-rtdb.firebaseio.com/questions.json?orderBy="type"&equalTo="'+e.target.value+'"&print=pretty');
-                    }}/>
-                <AddButton text="Add Question" handleOpen={handleOpen}/>
+                            }}/>
+                </Grid>
+                <Grid item alignItems="stretch">
+                    <AddButton text="Add Question" handleOpen={handleOpen}/>
+                </Grid>
             </Grid>
             
             <Box mt={5}> 
@@ -97,8 +114,13 @@ export default function QuestionsList() {
                     { title: 'Content', field: 'content' },
                     {title:'Type',field:'type'},
                   ]}
-                  data={questions}  
-                  
+                  data={questions.questions}  
+                  options={
+                      {
+                          search: true,
+                          debounceInterval:0
+                      }
+                  }
                   actions={[
                     {
                       icon: 'save',
@@ -108,10 +130,11 @@ export default function QuestionsList() {
                     }
                 ]}
                   />  
-            </Box>
-            <QuestionDialog items={types} open={open} handleClose={handleClose} />
+            </Box> 
+            <QuestionDialog items={types} open={open} handleClose={handleClose} newQuestion={newQuestion}/>
         </Container>
         }
-    </>
+    </div>
   );
 }
+export default QuestionsList;

@@ -20,17 +20,17 @@ function MyProfile(){
 
     setOpenAlert(false);
   };
-useEffect(()=>{
+useEffect(()=> {
+  const controller = new AbortController();
   const fetchUserDetails= async () => {
-      const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/user.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty');
-    
+      const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/user.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty', {
+        signal: controller.signal
+      });
       if(!response.ok){
           throw new Error('Something went wrong!');
       }
       const responseData = await response.json();
-  
       const loadedUserDetails = [];
-  
       for (const key in responseData){
         loadedUserDetails.push(
               {
@@ -47,9 +47,14 @@ useEffect(()=>{
   }
   
    fetchUserDetails().catch((error) =>{
+    if(error.name === 'AbortError') {
+      console.log('fetch aborted');
+    }else {
        setIsLoading(false);
        setHttpError(error.message);
-     });     
+    }
+     });   
+     return () => controller.abort();  
   },[authCtx.userId]);
 
   const submitHandle =  (event) => {
@@ -103,25 +108,25 @@ useEffect(()=>{
 
             <Grid item xs={12} sm={6} p={2}>
               <InputLabel> First Name:</InputLabel>
-              <TextField  fullWidth variant="standard" inputRef={inputFname} defaultValue={userdetails[0].fname}/>
+              <TextField  fullWidth variant="standard" inputRef={inputFname} defaultValue={ userdetails[0] ? userdetails[0].fname : " "}/>
             </Grid>
 
             <Grid item xs={12} sm={6} p={2}>
               <InputLabel>Last Name :</InputLabel>
-              <TextField  fullWidth variant="standard" inputRef = {inputLname} defaultValue={userdetails[0].lname}/>
+              <TextField  fullWidth variant="standard" inputRef = {inputLname} defaultValue={userdetails[0] ? userdetails[0].lname : " "}/>
             </Grid>
               
             <Grid item xs={12} sm={6} md={6} p={2}>
               <InputLabel>Title :</InputLabel>
-              <TextField  fullWidth  variant="standard" inputRef={inputTitle} defaultValue={userdetails[0].title}/>
+              <TextField  fullWidth  variant="standard" inputRef={inputTitle} defaultValue={userdetails[0] ? userdetails[0].title : " "}/>
             </Grid>
 
             <Grid item xs={12} sm={6} md={6} p={2}>
               <InputLabel>LinkedIn URL :</InputLabel>
-              <TextField  fullWidth variant="standard" inputRef={inputLinkedIn} defaultValue={userdetails[0].linkedinUrl}/>
+              <TextField  fullWidth variant="standard" inputRef={inputLinkedIn} defaultValue={userdetails[0] ? userdetails[0].linkedinUrl :" "}/>
             </Grid>
           </Grid>
-          <Button type="submit"  variant="contained" >Save</Button>
+          <Button type="submit">Save</Button>
         </Box>}
       </Container>
     )

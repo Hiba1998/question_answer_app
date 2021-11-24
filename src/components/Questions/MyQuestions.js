@@ -16,9 +16,12 @@ function MyQuestions(){
 
     setOpen(false);
   };
-useEffect(()=>{
+useEffect(()=> {
+  const controller = new AbortController();
 const fetchMyQuestions = async () => {
-    const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/questions.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty');
+    const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/questions.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty',{
+      signal: controller.signal
+    });
     
     if(!response.ok){
         throw new Error('Something went wrong!');
@@ -41,9 +44,14 @@ const fetchMyQuestions = async () => {
 };
 
 fetchMyQuestions().catch((error) =>{
+  if(error.name === 'AbortError') {
+    console.log('fetch aborted');
+  }else {
     setIsLoading(false);
     setHttpError(error.message);
     setOpen(true);
+  }
+  return () => controller.abort();  
     });     
 },[myquestions,authCtx.userId]);
 

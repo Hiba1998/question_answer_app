@@ -3,13 +3,13 @@ import React from 'react';
 
 export default function TypeSelect(props) {
   return (
-    <>
+    <div>
         <InputLabel>{props.text}</InputLabel>
             <Select  size ="small" fullWidth  defaultValue="" inputRef={props.typeInputRef ? props.typeInputRef : null}  onChange={props.onChange} error={props.validationError ? props.validationError :false} >
                 {props.types.map(type =>(
                     <MenuItem key={type.id} value={type.type}>{type.type}</MenuItem>
                 ))}
             </Select>
-    </>
+    </div>
   );
 }

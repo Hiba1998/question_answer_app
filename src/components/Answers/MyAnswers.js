@@ -16,9 +16,12 @@ function MyAnswers(){
 
     setOpen(false);
   };
-  useEffect(()=>{
+  useEffect(()=> {
+    const controller = new AbortController();
     const fetchMyAnswers = async () => {
-        const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty');
+        const response = await fetch('https://cme-firstproject-default-rtdb.firebaseio.com/answers.json?orderBy="userID"&equalTo="'+authCtx.userId+'"&print=pretty',{
+          signal: controller.signal
+        });
         
         if(!response.ok){
             throw new Error('Something went wrong!');
@@ -40,11 +43,15 @@ function MyAnswers(){
     };
     
     fetchMyAnswers().catch((error) =>{
+      if(error.name === 'AbortError') {
+        console.log('fetch aborted');
+      }else {
         setIsLoading(false);
         setHttpError(error.message);
         setOpen(true);
-
-        });     
+      }
+        });   
+      return () => controller.abort();   
     },[authCtx.userId]);
     return(
     <Grid  container item xs={12} sm={8} md={8} m={2} justifyContent="flex-start">

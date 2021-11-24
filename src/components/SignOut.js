@@ -87,7 +87,7 @@ const SignOut = () => {
         alignItems: 'center',
       }}
     >
-      <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}></Avatar>
+      <Avatar sx={{ m: 1 }}></Avatar>
       <Typography component="h1" variant="h5">Sign up</Typography>
 
       <Box component="form"  onSubmit={submitHandle}   sx={{ mt: 3 }}>

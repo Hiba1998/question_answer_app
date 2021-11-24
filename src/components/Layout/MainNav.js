@@ -15,10 +15,10 @@ const MainNav = () => {
 
   return (
     <AppBar position="static">
-      <Toolbar style={{justifyContent:"flex-end"}}>
+      <Toolbar>
           <NavLink to="/questions"  style={{textDecoration:'none',color:'white',paddingLeft:30,paddingRight:30}} >Questions</NavLink>
           <NavLink to="/profile" style={{textDecoration:'none',color:'white',paddingLeft:30,paddingRight:30}}>Profile</NavLink>
-          <Button color="inherit" onClick={logoutHandler} style={{  fontSize: "12px",borderRadius: 20,backgroundColor: "#21b6ae",padding: "10px 15px", textTransform:'none'}}>Log Out</Button>
+          <Button color="inherit" onClick={logoutHandler} style={{  fontSize: "12px",borderRadius: 20,backgroundColor: "#21b6ae"}}>Log Out</Button>
       </Toolbar>
     </AppBar>
   );
